@@ -12,7 +12,7 @@
 - **По центру** (горизонтально) внутри header
 - **UPPERCASE** (верхний регистр)
 - Шрифт: **Helvetica** (fallback: `Arial, sans-serif`)
-- Убедись, что нигде в header не используется `dinburgh` / `dinsburgh` / `Dinburgh`.
+- Убедись, что нигде в header не используется `dinsburgh` / `dinsburgh` / `Dinsburgh`.
 
 **Acceptance:**
 - Визуально в центре на всех ширинах (mobile/tablet/desktop).
