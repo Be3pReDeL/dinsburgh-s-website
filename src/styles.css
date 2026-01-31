@@ -296,12 +296,7 @@ main {
   flex-wrap: nowrap;
   gap: var(--space-2);
   justify-content: center;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.tabs::-webkit-scrollbar {
-  display: none;
+  overflow: hidden;
 }
 
 .tab-button {
@@ -317,6 +312,9 @@ main {
   align-items: center;
   gap: var(--space-1);
   transition: all 0.3s ease;
+  flex: 1 1 0;
+  min-width: 0;
+  justify-content: center;
 }
 
 .tab-description {
@@ -349,6 +347,7 @@ main {
 .tab-button .tab-index {
   color: var(--color-accent-soft);
   font-size: 0.7rem;
+  flex-shrink: 0;
 }
 
 .tab-button::after {
@@ -583,7 +582,36 @@ main {
   }
 
   .portfolio-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-2);
+  }
+
+  .tab-button {
+    padding: 6px 10px;
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+  }
+
+  .tab-button .tab-index {
+    font-size: 0.6rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .portfolio-grid {
     grid-template-columns: 1fr;
+  }
+
+  .work-card {
+    max-width: 360px;
+  }
+
+  .work-card img {
+    aspect-ratio: 4 / 5;
+  }
+
+  .tabs {
+    gap: 6px;
   }
 }
 
