@@ -575,6 +575,18 @@ main {
 
   .bio-card {
     grid-template-columns: 1fr;
+    padding: var(--space-3);
+    gap: var(--space-3);
+  }
+
+  .bio-media {
+    max-width: 220px;
+    margin: 0 auto;
+  }
+
+  .bio-orb {
+    width: 68px;
+    height: 68px;
   }
 
   .hero {
@@ -612,6 +624,27 @@ main {
 
   .tabs {
     gap: 6px;
+  }
+
+  .hero-title {
+    font-size: clamp(2.2rem, 10vw, 3rem);
+    letter-spacing: 0.05em;
+  }
+
+  .hero-subtitle {
+    font-size: 0.95rem;
+  }
+
+  .bio-content p {
+    font-size: 0.95rem;
+  }
+
+  .bio-meta {
+    font-size: 0.8rem;
+  }
+
+  .bio-media {
+    max-width: 180px;
   }
 }
 
