@@ -135,7 +135,7 @@ const App = () => {
       </a>
       <header className={`site-header ${isScrolled ? 'is-scrolled' : ''}`}>
         <div className="container header-inner">
-          <span className="brand-mark">DINSBURGH</span>
+          <span className="brand-mark brand-mark--header">DINSBURGH</span>
         </div>
       </header>
 
@@ -144,7 +144,7 @@ const App = () => {
           <div className="container">
             <div className="hero">
               <h1 id="bio-title" className="hero-title">
-                Dinsburgh
+                DINSBURGH
               </h1>
               <p className="hero-subtitle">
                 Цифровые сцены, экспериментальная живопись и fashion-коллаборации
@@ -159,10 +159,10 @@ const App = () => {
               <div className="bio-content">
                 <h2 className="section-title">Bio</h2>
                 <p>
-                  Dinsburgh работает на стыке цифровых медиа и классической
-                  живописи. Внимание к контрасту и мягкому свечению формирует
-                  узнаваемый почерк, а каждая серия строится вокруг ощущения
-                  пространственного света.
+                  <span className="brand-name">DINSBURGH</span> работает на
+                  стыке цифровых медиа и классической живописи. Внимание к
+                  контрасту и мягкому свечению формирует узнаваемый почерк, а
+                  каждая серия строится вокруг ощущения пространственного света.
                 </p>
                 <div className="bio-meta">
                   <span>Работает с 2016</span>
@@ -175,10 +175,6 @@ const App = () => {
 
         <section className="portfolio-section" id="portfolio">
           <div className="container">
-            <div className="portfolio-hero">
-              <span className="brand-mark">DINSBURGH</span>
-            </div>
-
             <div className="tabs" role="tablist" aria-label="Разделы работ">
               {categories.map((category, index) => {
                 const isActive = category.slug === activeCategory;
@@ -207,7 +203,7 @@ const App = () => {
             <p className="tab-description">{activeCategoryDescription}</p>
 
             <div className="portfolio-banner glass-panel" aria-hidden="true">
-              PORTFOLIO
+              ПОРТФОЛИО
             </div>
 
             <div

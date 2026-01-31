@@ -1,5 +1,7 @@
 :root {
   color-scheme: dark;
+  --font-brand: "Humanist 521 Std Bold", "Humanist 521 Std", "Humanist 521",
+    "Helvetica", "Arial", sans-serif;
   /* Warm palette shift (~+50% warmth) */
   --color-bg: #120e0a;
   --color-bg-elevated: rgba(255, 246, 235, 0.06);
@@ -29,6 +31,16 @@
   -webkit-font-smoothing: antialiased;
 }
 
+@font-face {
+  font-family: "Humanist 521 Std Bold";
+  src:
+    url("/fonts/Humanist521Std-Bold.woff2") format("woff2"),
+    url("/fonts/Humanist521Std-Bold.woff") format("woff");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 *,
 *::before,
 *::after {
@@ -52,9 +64,10 @@ body::before {
   inset: 0;
   z-index: -1;
   background:
-    radial-gradient(1200px 600px at 10% -10%, rgba(255, 245, 220, 0.1), transparent),
-    radial-gradient(900px 500px at 90% 20%, rgba(255, 90, 40, 0.12), transparent),
-    radial-gradient(700px 500px at 30% 80%, rgba(90, 20, 10, 0.24), transparent);
+    radial-gradient(60% 45% at 15% 5%, rgba(247, 241, 230, 0.1), transparent 60%),
+    radial-gradient(55% 45% at 85% 10%, rgba(255, 200, 170, 0.12), transparent 65%),
+    radial-gradient(70% 60% at 20% 85%, rgba(110, 90, 80, 0.25), transparent 70%),
+    radial-gradient(70% 60% at 80% 85%, rgba(90, 20, 10, 0.24), transparent 70%);
 }
 
 a {
@@ -135,11 +148,18 @@ a:focus-visible {
 }
 
 .brand-mark {
-  font-family: "Helvetica", "Arial", sans-serif;
+  font-family: var(--font-brand);
   font-size: 1.05rem;
-  letter-spacing: 0.36em;
+  font-weight: 900;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--color-accent-soft);
+}
+
+.brand-mark--header {
+  font-size: 1.85rem;
+  font-weight: 900;
+  text-shadow: 0 0 0.7px currentColor;
 }
 
 
@@ -160,7 +180,7 @@ main {
 }
 
 .hero-title {
-  font-family: "Playfair Display", "Times New Roman", serif;
+  font-family: var(--font-brand);
   font-size: clamp(2.8rem, 6vw, 5.6rem);
   margin: 0 0 var(--space-2);
   letter-spacing: 0.08em;
@@ -270,18 +290,18 @@ main {
   padding: var(--space-7) 0 var(--space-6);
 }
 
-.portfolio-hero {
-  display: flex;
-  justify-content: center;
-  margin-bottom: var(--space-3);
-}
-
 .tabs {
   margin-top: var(--space-4);
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: var(--space-2);
   justify-content: center;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .tab-button {
@@ -313,9 +333,17 @@ main {
   align-items: center;
   justify-content: center;
   text-transform: uppercase;
-  letter-spacing: 0.4em;
+  letter-spacing: 0.18em;
   font-size: 0.85rem;
   color: var(--color-accent-soft);
+  font-family: var(--font-brand);
+  font-weight: 900;
+}
+
+.brand-name {
+  font-family: var(--font-brand);
+  font-weight: 700;
+  letter-spacing: 0.02em;
 }
 
 .tab-button .tab-index {
@@ -326,26 +354,32 @@ main {
 .tab-button::after {
   content: "";
   position: absolute;
-  left: 12px;
-  right: 12px;
-  bottom: 4px;
-  height: 1px;
-  background: linear-gradient(90deg, var(--color-accent), transparent);
+  inset: 0;
+  border-radius: 999px;
+  border: 0.35px solid rgba(255, 69, 0, 0.55);
+  background:
+    linear-gradient(
+      140deg,
+      rgba(255, 120, 80, 0.45),
+      rgba(255, 69, 0, 0) 55%
+    );
   opacity: 0;
-  transform: translateY(4px);
-  transition: all 0.3s ease;
+  transition: opacity 0.3s ease, box-shadow 0.3s ease;
+  pointer-events: none;
 }
 
 .tab-button.is-active {
   color: var(--color-text);
   border-color: rgba(255, 228, 210, 0.3);
   background: rgba(255, 246, 235, 0.08);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+  box-shadow:
+    0 8px 20px rgba(0, 0, 0, 0.35),
+    inset 0 0 18px rgba(255, 255, 255, 0.05);
 }
 
 .tab-button.is-active::after {
   opacity: 1;
-  transform: translateY(0);
+  box-shadow: none;
 }
 
 .portfolio-grid {
@@ -533,6 +567,13 @@ main {
 }
 
 @media (max-width: 720px) {
+  body::before {
+    background:
+      radial-gradient(80% 55% at 20% 0%, rgba(247, 241, 230, 0.12), transparent 65%),
+      radial-gradient(70% 55% at 85% 15%, rgba(255, 200, 170, 0.12), transparent 70%),
+      radial-gradient(85% 65% at 50% 85%, rgba(110, 90, 80, 0.28), transparent 75%);
+  }
+
   .bio-card {
     grid-template-columns: 1fr;
   }
