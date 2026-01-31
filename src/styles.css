@@ -599,15 +599,15 @@ main {
 
 @media (max-width: 480px) {
   .portfolio-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .work-card {
-    max-width: 360px;
+    max-width: 220px;
   }
 
   .work-card img {
-    aspect-ratio: 4 / 5;
+    aspect-ratio: 3 / 4;
   }
 
   .tabs {
