@@ -16,6 +16,14 @@ npm run build
 npm run preview
 ```
 
+## Деплой на GitHub Pages
+
+Рекомендуемый способ — GitHub Actions (workflow уже добавлен в `.github/workflows/deploy.yml`).
+
+Важно:
+- В настройках GitHub Pages выбери Source: **GitHub Actions**.
+- Если деплоишь не в корень домена, установи `VITE_BASE` в переменной окружения (например `/repo-name/`).
+
 ## Как добавлять работы
 
 Контент подтягивается автоматически из папок в `content/portfolio` — код менять не нужно.
