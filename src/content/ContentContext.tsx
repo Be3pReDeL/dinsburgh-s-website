@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import type { SiteContent } from '../types';
 import { defaultContent } from './defaultContent';
 import { fetchContent, saveContent as persistContent } from './contentService';
+import { loadStoredContent } from './storage';
 
 type ContentContextValue = {
   content: SiteContent;
@@ -9,6 +10,7 @@ type ContentContextValue = {
   refreshContent: () => Promise<void>;
   isLoading: boolean;
   errorMessage: string;
+  hasCachedContent: boolean;
 };
 
 const ContentContext = createContext<ContentContextValue | null>(null);
@@ -18,16 +20,25 @@ export const ContentProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
-  const [content, setContent] = useState<SiteContent>(defaultContent);
-  const [isLoading, setIsLoading] = useState(true);
+  const cachedContent = loadStoredContent();
+  const [content, setContent] = useState<SiteContent>(
+    cachedContent ?? defaultContent
+  );
+  const [hasCachedContent, setHasCachedContent] = useState(
+    Boolean(cachedContent)
+  );
+  const [isLoading, setIsLoading] = useState(!cachedContent);
   const [errorMessage, setErrorMessage] = useState('');
 
   const refreshContent = async () => {
-    setIsLoading(true);
+    if (!hasCachedContent) {
+      setIsLoading(true);
+    }
     setErrorMessage('');
     try {
       const loaded = await fetchContent();
       setContent(loaded);
+      setHasCachedContent(true);
     } catch (error) {
       setErrorMessage(
         error instanceof Error
@@ -43,6 +54,7 @@ export const ContentProvider = ({
     setErrorMessage('');
     await persistContent(next);
     setContent(next);
+    setHasCachedContent(true);
   };
 
   useEffect(() => {
@@ -56,8 +68,9 @@ export const ContentProvider = ({
       refreshContent,
       isLoading,
       errorMessage,
+      hasCachedContent,
     }),
-    [content, errorMessage, isLoading]
+    [content, errorMessage, hasCachedContent, isLoading]
   );
 
   return (

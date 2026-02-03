@@ -42,7 +42,9 @@ export const fetchContent = async (): Promise<SiteContent> => {
     throw error;
   }
 
-  return sanitizeContent(data?.content ?? defaultContent);
+  const loaded = sanitizeContent(data?.content ?? defaultContent);
+  saveStoredContent(loaded);
+  return loaded;
 };
 
 export const saveContent = async (content: SiteContent) => {
@@ -65,6 +67,8 @@ export const saveContent = async (content: SiteContent) => {
   if (error) {
     throw error;
   }
+
+  saveStoredContent(content);
 };
 
 export const uploadImage = async (file: File, folder: string) => {

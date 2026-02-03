@@ -1030,7 +1030,7 @@ const AdminPanel = ({
 };
 
 const AdminApp = () => {
-  const { content, saveContent, isLoading } = useContent();
+  const { content, saveContent, isLoading, hasCachedContent } = useContent();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
@@ -1119,7 +1119,7 @@ const AdminApp = () => {
     }
   };
 
-  if (isCheckingAuth || isLoading) {
+  if (isCheckingAuth || (isLoading && !hasCachedContent)) {
     return (
       <div className="admin-page">
         <header className="site-header admin-header">

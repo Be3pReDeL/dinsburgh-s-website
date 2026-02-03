@@ -31,7 +31,7 @@ const sortCategories = (categories: PortfolioCategory[]) =>
     .sort((a, b) => a.order - b.order);
 
 const PublicApp = () => {
-  const { content } = useContent();
+  const { content, isLoading, errorMessage, hasCachedContent } = useContent();
   const categories = useMemo(
     () => sortCategories(content.portfolio.categories),
     [content.portfolio.categories]
@@ -211,6 +211,19 @@ const PublicApp = () => {
 
   const activeCategoryDescription =
     activeCategory?.description ?? 'Описание направления будет добавлено позже.';
+
+  if (!hasCachedContent && (isLoading || errorMessage)) {
+    return (
+      <div className="page loading-screen">
+        <div className="glass-panel loading-card">
+          <span className="brand-mark brand-mark--header">DINSBURGH</span>
+          <p className="loading-text">
+            {errorMessage || 'Загрузка контента...'}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="page">
