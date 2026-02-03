@@ -478,6 +478,7 @@ main {
   padding: var(--space-4);
   max-height: 90vh;
   overflow: auto;
+  position: relative;
   transform: translateY(12px) scale(0.98);
   opacity: 0;
   transition: transform 0.25s ease, opacity 0.25s ease;
@@ -501,6 +502,7 @@ main {
   place-items: center;
   font-size: 1.1rem;
   color: var(--color-accent-soft);
+  z-index: 2;
 }
 
 .modal-content {
@@ -549,6 +551,8 @@ main {
   color: var(--color-accent-soft);
   display: grid;
   place-items: center;
+  line-height: 1;
+  font-size: 1.1rem;
 }
 
 .modal-count {
