@@ -36,7 +36,6 @@ const PublicApp = () => {
     () => sortCategories(content.portfolio.categories),
     [content.portfolio.categories]
   );
-  const [isLoveModalOpen, setIsLoveModalOpen] = useState(true);
   const [activeCategoryId, setActiveCategoryId] = useState(
     categories[0]?.id ?? ''
   );
@@ -86,10 +85,6 @@ const PublicApp = () => {
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
-  }, []);
-
-  useEffect(() => {
-    setIsLoveModalOpen(true);
   }, []);
 
   useEffect(() => {
@@ -443,34 +438,6 @@ const PublicApp = () => {
                 )}
               </div>
             </div>
-          </div>
-        )}
-      </div>
-
-      <div
-        className={`love-modal-backdrop ${isLoveModalOpen ? 'is-open' : ''}`}
-        aria-hidden={!isLoveModalOpen}
-        onClick={() => setIsLoveModalOpen(false)}
-      >
-        {isLoveModalOpen && (
-          <div
-            className="love-modal glass-panel"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Сообщение"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <button
-              type="button"
-              className="love-modal-close"
-              onClick={() => setIsLoveModalOpen(false)}
-              aria-label="Закрыть"
-            >
-              ✕
-            </button>
-            <p className="love-modal-text">
-              Сережа любит Олю! С + О = &lt;3
-            </p>
           </div>
         )}
       </div>

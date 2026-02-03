@@ -488,61 +488,6 @@ main {
   opacity: 1;
 }
 
-.love-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  padding: var(--space-3);
-  background: rgba(0, 0, 0, 0.6);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.2s ease;
-  z-index: 40;
-}
-
-.love-modal-backdrop.is-open {
-  opacity: 1;
-  pointer-events: all;
-}
-
-.love-modal {
-  width: min(520px, 100%);
-  padding: var(--space-4);
-  text-align: center;
-  position: relative;
-  transform: translateY(12px) scale(0.98);
-  opacity: 0;
-  transition: transform 0.25s ease, opacity 0.25s ease;
-}
-
-.love-modal-backdrop.is-open .love-modal {
-  transform: translateY(0) scale(1);
-  opacity: 1;
-}
-
-.love-modal-close {
-  position: absolute;
-  top: var(--space-2);
-  right: var(--space-2);
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: rgba(18, 14, 10, 0.7);
-  border: 1px solid rgba(255, 230, 210, 0.24);
-  display: grid;
-  place-items: center;
-  color: var(--color-accent-soft);
-}
-
-.love-modal-text {
-  margin: 0;
-  font-size: 1.2rem;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--color-accent-soft);
-}
-
 .modal-close {
   position: absolute;
   top: var(--space-2);
