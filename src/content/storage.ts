@@ -76,7 +76,7 @@ const sanitizeCategory = (
   };
 };
 
-const sanitizeContent = (value: unknown): SiteContent => {
+export const sanitizeContent = (value: unknown): SiteContent => {
   if (!isRecord(value)) return defaultContent;
 
   const copyInput = value.copy;

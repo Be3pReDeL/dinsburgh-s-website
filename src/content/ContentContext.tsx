@@ -1,13 +1,14 @@
-import { createContext, useContext, useMemo, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import type { SiteContent } from '../types';
 import { defaultContent } from './defaultContent';
-import { clearStoredContent, loadStoredContent, saveStoredContent } from './storage';
+import { fetchContent, saveContent as persistContent } from './contentService';
 
 type ContentContextValue = {
   content: SiteContent;
-  saveContent: (next: SiteContent) => void;
-  resetContent: () => void;
-  hasStoredContent: boolean;
+  saveContent: (next: SiteContent) => Promise<void>;
+  refreshContent: () => Promise<void>;
+  isLoading: boolean;
+  errorMessage: string;
 };
 
 const ContentContext = createContext<ContentContextValue | null>(null);
@@ -17,32 +18,46 @@ export const ContentProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
-  const stored = loadStoredContent();
-  const [content, setContent] = useState<SiteContent>(
-    stored ?? defaultContent
-  );
-  const [hasStoredContent, setHasStoredContent] = useState(Boolean(stored));
+  const [content, setContent] = useState<SiteContent>(defaultContent);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState('');
 
-  const saveContent = (next: SiteContent) => {
+  const refreshContent = async () => {
+    setIsLoading(true);
+    setErrorMessage('');
+    try {
+      const loaded = await fetchContent();
+      setContent(loaded);
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : 'Не удалось загрузить контент.'
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const saveContent = async (next: SiteContent) => {
+    setErrorMessage('');
+    await persistContent(next);
     setContent(next);
-    saveStoredContent(next);
-    setHasStoredContent(true);
   };
 
-  const resetContent = () => {
-    setContent(defaultContent);
-    clearStoredContent();
-    setHasStoredContent(false);
-  };
+  useEffect(() => {
+    void refreshContent();
+  }, []);
 
   const value = useMemo(
     () => ({
       content,
       saveContent,
-      resetContent,
-      hasStoredContent,
+      refreshContent,
+      isLoading,
+      errorMessage,
     }),
-    [content, hasStoredContent]
+    [content, errorMessage, isLoading]
   );
 
   return (

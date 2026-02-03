@@ -1,16 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { PortfolioCategory, PortfolioWork, SiteContent } from '../types';
 import { useContent } from '../content/ContentContext';
+import { uploadImage } from '../content/contentService';
 import {
-  createCredentials,
-  createSession,
-  isSessionValid,
-  isSetupRequired,
-  logout,
-  verifyPassword,
+  getAdminEmail,
+  getSession,
+  isAuthConfigured,
+  onAuthStateChange,
+  signIn,
+  signOut,
 } from './auth';
-
-type AuthMode = 'login' | 'setup';
 
 const cloneContent = <T,>(value: T): T => {
   if (typeof structuredClone === 'function') {
@@ -41,42 +40,29 @@ const createId = (prefix: string) =>
     .toString(36)
     .slice(2, 6)}`;
 
-const readFileAsDataUrl = (file: File) =>
-  new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result));
-    reader.onerror = () =>
-      reject(reader.error ?? new Error('Не удалось прочитать файл.'));
-    reader.readAsDataURL(file);
-  });
-
 const AdminLogin = ({
-  mode,
   onLogin,
-  onSetup,
   errorMessage,
-  onModeChange,
+  isConfigured,
+  adminEmail,
 }: {
-  mode: AuthMode;
   onLogin: (password: string) => Promise<void>;
-  onSetup: (password: string) => Promise<void>;
   errorMessage: string;
-  onModeChange: (nextMode: AuthMode) => void;
+  isConfigured: boolean;
+  adminEmail: string;
 }) => {
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (mode === 'setup' && password !== confirmPassword) return;
+    if (!isConfigured) return;
     setIsSubmitting(true);
-    if (mode === 'setup') {
-      await onSetup(password);
-    } else {
+    try {
       await onLogin(password);
+    } finally {
+      setIsSubmitting(false);
     }
-    setIsSubmitting(false);
   };
 
   return (
@@ -89,14 +75,19 @@ const AdminLogin = ({
       <main className="admin-main">
         <div className="container admin-auth">
           <div className="glass-panel admin-auth-card">
-            <h1 className="admin-title">
-              {mode === 'setup' ? 'Настройка Admin' : 'Вход в Admin'}
-            </h1>
+            <h1 className="admin-title">Вход в Admin</h1>
             <p className="admin-subtitle">
-              {mode === 'setup'
-                ? 'Создайте пароль администратора, чтобы управлять контентом.'
-                : 'Введите пароль администратора для доступа к панели.'}
+              Введите пароль администратора для доступа к панели.
             </p>
+            {!isConfigured && (
+              <div className="admin-error">
+                Supabase не настроен. Укажите переменные окружения для
+                подключения.
+              </div>
+            )}
+            {adminEmail && (
+              <div className="admin-subtitle">Админ: {adminEmail}</div>
+            )}
             <form className="admin-form" onSubmit={handleSubmit}>
               <label className="admin-field">
                 <span>Пароль</span>
@@ -109,24 +100,6 @@ const AdminLogin = ({
                   minLength={8}
                 />
               </label>
-              {mode === 'setup' && (
-                <label className="admin-field">
-                  <span>Повторите пароль</span>
-                  <input
-                    className="admin-input"
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(event) =>
-                      setConfirmPassword(event.target.value)
-                    }
-                    required
-                    minLength={8}
-                  />
-                </label>
-              )}
-              {mode === 'setup' && password !== confirmPassword && (
-                <span className="admin-error">Пароли не совпадают.</span>
-              )}
               {errorMessage && (
                 <span className="admin-error">{errorMessage}</span>
               )}
@@ -134,32 +107,13 @@ const AdminLogin = ({
                 className="admin-button is-primary"
                 type="submit"
                 disabled={
-                  isSubmitting ||
-                  !password ||
-                  (mode === 'setup' && password !== confirmPassword)
+                  isSubmitting || !password || !isConfigured
                 }
               >
-                {mode === 'setup' ? 'Создать доступ' : 'Войти'}
+                Войти
               </button>
             </form>
             <div className="admin-auth-actions">
-              {mode === 'setup' ? (
-                <button
-                  type="button"
-                  className="admin-button is-ghost"
-                  onClick={() => onModeChange('login')}
-                >
-                  Уже есть пароль
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  className="admin-button is-ghost"
-                  onClick={() => onModeChange('setup')}
-                >
-                  Создать новый пароль
-                </button>
-              )}
               <a className="admin-link" href="#/">
                 На публичный сайт
               </a>
@@ -176,11 +130,13 @@ const AdminPanel = ({
   onSave,
   onCancel,
   onLogout,
+  isSaving,
 }: {
   content: SiteContent;
-  onSave: (next: SiteContent) => void;
+  onSave: (next: SiteContent) => Promise<void>;
   onCancel: () => void;
   onLogout: () => void;
+  isSaving: boolean;
 }) => {
   const [draftContent, setDraftContent] = useState(() =>
     cloneContent(content)
@@ -490,7 +446,7 @@ const AdminPanel = ({
     if (!files || files.length === 0) return;
     try {
       const images = await Promise.all(
-        Array.from(files).map((file) => readFileAsDataUrl(file))
+        Array.from(files).map((file) => uploadImage(file, 'portfolio'))
       );
       updateCategories((categories) =>
         categories.map((category) => {
@@ -520,7 +476,7 @@ const AdminPanel = ({
   const handleBioImageUpload = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
     try {
-      const image = await readFileAsDataUrl(files[0]);
+      const image = await uploadImage(files[0], 'bio');
       setDraftContent((prev) => ({
         ...prev,
         copy: {
@@ -540,9 +496,20 @@ const AdminPanel = ({
   };
 
   const handleSave = () => {
-    onSave(draftContent);
-    setIsDirty(false);
-    setStatusMessage('Изменения сохранены.');
+    setStatusMessage('');
+    setErrorMessage('');
+    onSave(draftContent)
+      .then(() => {
+        setIsDirty(false);
+        setStatusMessage('Изменения сохранены.');
+      })
+      .catch((error) => {
+        setErrorMessage(
+          error instanceof Error
+            ? error.message
+            : 'Не удалось сохранить изменения.'
+        );
+      });
   };
 
   const handleCancel = () => {
@@ -591,15 +558,15 @@ const AdminPanel = ({
                 className="admin-button is-primary"
                 type="button"
                 onClick={handleSave}
-                disabled={!isDirty}
+                disabled={!isDirty || isSaving}
               >
-                Сохранить изменения
+                {isSaving ? 'Сохранение...' : 'Сохранить изменения'}
               </button>
               <button
                 className="admin-button is-ghost"
                 type="button"
                 onClick={handleCancel}
-                disabled={!isDirty}
+                disabled={!isDirty || isSaving}
               >
                 Отменить
               </button>
@@ -1063,12 +1030,53 @@ const AdminPanel = ({
 };
 
 const AdminApp = () => {
-  const { content, saveContent } = useContent();
-  const [isAuthenticated, setIsAuthenticated] = useState(isSessionValid());
-  const [mode, setMode] = useState<AuthMode>(
-    isSetupRequired() ? 'setup' : 'login'
-  );
+  const { content, saveContent, isLoading } = useContent();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const configured = isAuthConfigured();
+  const adminEmail = getAdminEmail();
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const checkSession = async () => {
+      try {
+        const session = await getSession();
+        if (!isMounted) return;
+        setIsAuthenticated(Boolean(session));
+      } catch (error) {
+        if (!isMounted) return;
+        setErrorMessage(
+          error instanceof Error
+            ? error.message
+            : 'Не удалось проверить сессию.'
+        );
+      } finally {
+        if (isMounted) {
+          setIsCheckingAuth(false);
+        }
+      }
+    };
+
+    if (configured) {
+      void checkSession();
+      const subscription = onAuthStateChange((session) => {
+        if (!isMounted) return;
+        setIsAuthenticated(Boolean(session));
+      });
+      return () => {
+        isMounted = false;
+        subscription?.unsubscribe();
+      };
+    }
+
+    setIsCheckingAuth(false);
+    return () => {
+      isMounted = false;
+    };
+  }, [configured]);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -1078,42 +1086,65 @@ const AdminApp = () => {
 
   const handleLogin = async (password: string) => {
     setErrorMessage('');
-    const valid = await verifyPassword(password);
-    if (!valid) {
-      setErrorMessage('Неверный пароль.');
-      return;
+    try {
+      await signIn(password);
+      setIsAuthenticated(true);
+      window.location.hash = '#/admin';
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : 'Неверный пароль.'
+      );
     }
-    createSession();
-    setIsAuthenticated(true);
-    window.location.hash = '#/admin';
-  };
-
-  const handleSetup = async (password: string) => {
-    setErrorMessage('');
-    if (password.length < 8) {
-      setErrorMessage('Пароль должен быть не короче 8 символов.');
-      return;
-    }
-    await createCredentials(password);
-    createSession();
-    setIsAuthenticated(true);
-    setMode('login');
-    window.location.hash = '#/admin';
   };
 
   const handleLogout = () => {
-    logout();
-    setIsAuthenticated(false);
+    setErrorMessage('');
+    signOut()
+      .catch((error) => {
+        setErrorMessage(
+          error instanceof Error ? error.message : 'Не удалось выйти.'
+        );
+      })
+      .finally(() => {
+        setIsAuthenticated(false);
+      });
   };
+
+  const handleSave = async (next: SiteContent) => {
+    setIsSaving(true);
+    try {
+      await saveContent(next);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  if (isCheckingAuth || isLoading) {
+    return (
+      <div className="admin-page">
+        <header className="site-header admin-header">
+          <div className="container header-inner">
+            <span className="brand-mark brand-mark--header">DINSBURGH</span>
+          </div>
+        </header>
+        <main className="admin-main">
+          <div className="container admin-auth">
+            <div className="glass-panel admin-auth-card">
+              <h1 className="admin-title">Загрузка...</h1>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return (
       <AdminLogin
-        mode={mode}
         onLogin={handleLogin}
-        onSetup={handleSetup}
         errorMessage={errorMessage}
-        onModeChange={setMode}
+        isConfigured={configured}
+        adminEmail={adminEmail}
       />
     );
   }
@@ -1121,9 +1152,10 @@ const AdminApp = () => {
   return (
     <AdminPanel
       content={content}
-      onSave={saveContent}
+      onSave={handleSave}
       onCancel={() => null}
       onLogout={handleLogout}
+      isSaving={isSaving}
     />
   );
 };
